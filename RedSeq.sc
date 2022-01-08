@@ -2,17 +2,22 @@
 
 RedSeq {
 	var task;
-	*new {|indices, beats|
-		^super.new.initRedSeq([indices, beats].flop);
+	*new {|indices, beats, mode|
+		^super.new.initRedSeq([indices, beats].flop, mode);
 	}
-	*newArray {|array|
-		^super.new.initRedSeq(array);
+	*newArray {|array, mode|
+		^super.new.initRedSeq(array, mode);
 	}
-	initRedSeq {|array|
+	initRedSeq {|array, mode|
+		mode = mode ? \beats;
 		task= Task({
 			array.do{|x|							//x should be [index, beat]
 				RedMst.goto(x[0]);
-				x[1].wait;
+				if (mode == \beats, {
+					x[1].wait;
+				}, {
+					(x[1]*RedMst.clock.tempo).wait;
+				});
 			};
 			RedMst.stop;
 			(this.class.name++": sequence finished").postln;
