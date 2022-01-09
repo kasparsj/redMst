@@ -1,57 +1,53 @@
 //redFrik - released under gnu gpl license
 
 RedSeq {
-	var task;
 	var <currentIndex;
-	var <currentSection;
 	var <sections;
+	var <mode;
+	var <scheduler;
 	*new {|indices, beats, mode|
 		^super.new.initRedSeq([indices, beats].flop, mode);
 	}
 	*newArray {|array, mode|
 		^super.new.initRedSeq(array, mode);
 	}
-	initRedSeq {|array, mode|
+	initRedSeq {|array, m|
 		sections = array;
-		mode = mode ? \beats;
-		task= Task({
-			while ({
-				currentIndex < (sections.size - 1);
-			}, {
-				var x = sections[currentIndex];
-				currentSection = x[0];
-				RedMst.goto(currentSection);
-				if (mode == \beats, {
-					x[1].wait;
-				}, {
-					var time = x[1] - if (currentIndex > 0, { sections[currentIndex-1][1] }, { 0 });
-					(time*thisThread.clock.tempo).wait;
-				});
-				currentIndex = currentIndex + 1;
-			});
-			RedMst.stop;
-			(this.class.name++": sequence finished").postln;
+		mode = m ? \beats;
+		scheduler = TempoClock.new;
+	}
+	currentSection {
+		^sections[currentIndex][0];
+	}
+	waitSecs {
+		var beats = sections[currentIndex][1];
+		^if (mode == \beats, {
+			(beats*RedMst.clock.tempo);
+		}, {
+			beats - if (currentIndex > 0, { sections[currentIndex-1][1] }, { 0 });
 		});
 	}
 	play {
 		currentIndex = currentIndex ? 0;
-		task.reset;
-		task.play(RedMst.clock);
+		RedMst.goto(this.currentSection);
+		scheduler.sched(this.waitSecs, {
+			this.next;
+		});
 	}
 	stop {
-		task.stop;
+		scheduler.clear;
 		RedMst.stop;
 		currentIndex = nil;
-		currentSection = nil;
 	}
 	pause {
-		task.pause;
+		scheduler.clear;
 	}
 	resume {
-		task.resume;
+		this.play;
 	}
 	goto { |index|
 		currentIndex = index;
+		scheduler.clear;
 		this.play;
 	}
 	next {
