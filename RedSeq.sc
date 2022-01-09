@@ -5,6 +5,8 @@ RedSeq {
 	var <sections;
 	var <mode;
 	var <scheduler;
+	var <waitStart;
+	var <waitPause;
 	*new {|indices, beats, mode|
 		^super.new.initRedSeq([indices, beats].flop, mode);
 	}
@@ -30,9 +32,8 @@ RedSeq {
 	play {
 		currentIndex = currentIndex ? 0;
 		RedMst.goto(this.currentSection);
-		scheduler.sched(this.waitSecs, {
-			this.next;
-		});
+		waitPause = 0;
+		this.prSchedule;
 	}
 	stop {
 		scheduler.clear;
@@ -40,10 +41,11 @@ RedSeq {
 		currentIndex = nil;
 	}
 	pause {
+		waitPause = waitPause + (scheduler.seconds - waitStart);
 		scheduler.clear;
 	}
 	resume {
-		this.play;
+		this.prSchedule;
 	}
 	goto { |index|
 		currentIndex = index;
@@ -65,5 +67,11 @@ RedSeq {
 			sections.size - 1;
 		});
 		this.goto(prev);
+	}
+	prSchedule {
+		waitStart = scheduler.seconds;
+		scheduler.sched(this.waitSecs - waitPause, {
+			this.next;
+		});
 	}
 }
