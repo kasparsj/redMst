@@ -7,6 +7,7 @@ RedSeq {
 	var <scheduler;
 	var <waitStart;
 	var <waitPause;
+	var <>onStop;
 	*new {|indices, beats, mode|
 		^super.new.initRedSeq([indices, beats].flop, mode);
 	}
@@ -39,6 +40,9 @@ RedSeq {
 		scheduler.clear;
 		RedMst.stop;
 		currentIndex = nil;
+		if (onStop != nil) {
+			onStop.value;
+		};
 	}
 	pause {
 		waitPause = waitPause + (scheduler.seconds - waitStart);
@@ -53,18 +57,17 @@ RedSeq {
 		this.play;
 	}
 	next {
-		var next = if (currentIndex < (sections.size-1), {
-			currentIndex + 1;
+		if (currentIndex < (sections.size-1), {
+			this.goto(currentIndex + 1);
 		}, {
-			0;
+			this.stop;
 		});
-		this.goto(next);
 	}
 	prev {
 		var prev = if (currentIndex > 0, {
 			currentIndex - 1;
 		}, {
-			sections.size - 1;
+			0;
 		});
 		this.goto(prev);
 	}
