@@ -8,6 +8,10 @@ RedSeq {
 	var <waitStart;
 	var <waitPause;
 	var <>onStop;
+	var <>onLoop;
+	var <>onGoto;
+	var <>onPause;
+	var <>onResume;
 	*new {|indices, beats, mode|
 		^super.new.initRedSeq([indices, beats].flop, mode);
 	}
@@ -34,7 +38,7 @@ RedSeq {
 		currentIndex = currentIndex ? 0;
 		RedMst.goto(this.currentSection);
 		waitPause = 0;
-		this.prSchedule;
+		this.resume;
 	}
 	stop {
 		scheduler.clear;
@@ -47,34 +51,46 @@ RedSeq {
 	pause {
 		waitPause = waitPause + (scheduler.seconds - waitStart);
 		scheduler.clear;
+		if (onPause != nil) {
+			onPause.value;
+		};
 	}
 	resume {
 		this.prSchedule;
+		if (onResume != nil) {
+			onResume.value;
+		};
 	}
-	goto { |index|
+	goto { |index, fromSched|
 		currentIndex = index;
 		scheduler.clear;
 		this.play;
+		if (onGoto != nil) {
+			onGoto.value(fromSched);
+		};
 	}
-	next {
+	next { |fromSched|
 		if (currentIndex < (sections.size-1), {
-			this.goto(currentIndex + 1);
+			this.goto(currentIndex + 1, fromSched);
 		}, {
 			this.stop;
+			if (onLoop != nil) {
+				onLoop.value;
+			}
 		});
 	}
-	prev {
+	prev { |fromSched|
 		var prev = if (currentIndex > 0, {
 			currentIndex - 1;
 		}, {
 			0;
 		});
-		this.goto(prev);
+		this.goto(prev, fromSched);
 	}
 	prSchedule {
 		waitStart = scheduler.seconds;
 		scheduler.sched(this.waitSecs - waitPause, {
-			this.next;
+			this.next(true);
 		});
 	}
 }

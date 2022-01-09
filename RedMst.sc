@@ -90,7 +90,7 @@ RedMst {
 	}
 	*stop {
 		isPlaying= false;
-		if(clock.notNil, {
+		if((clock.notNil && clock.isRunning), {
 			clock.schedAbs(clock.nextTimeOnGrid(quant)-stopAheadTime, {
 				tracks.do{|x| x.stop};
 				nil;
