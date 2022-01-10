@@ -60,13 +60,16 @@ RedMst {
 	*initClass {
 		tracks= ();
 		clock= TempoClock.default;
+		CmdPeriod.add({
+			alreadyJumping = false;
+		});
 	}
 	*at {|key|
 		^tracks[key];
 	}
 	*add {|trk|
 		tracks.put(trk.key, trk);
-		if(trk.sections.includes(inf).not and:{trk.sections.maxItem>maxSection}, {
+		if(trk.sections.size > 0 && trk.sections.includes(inf).not and:{trk.sections.maxItem>maxSection}, {
 			maxSection= trk.sections.maxItem;
 		});
 	}
@@ -166,6 +169,40 @@ RedMst {
 			});
 		});
 		this.goto(jump);
+	}
+	*solo { |trk|
+		if (trk.isArray.not, {
+			trk = [trk];
+		});
+		tracks.do {|t|
+			if (trk.includes(t).not) {
+				t.mute;
+			};
+		};
+	}
+	*mute { |trk|
+		if (trk.isNil, {
+			trk = tracks;
+		}, {
+			if (trk.isArray.not, {
+				trk = [trk];
+			});
+		});
+		trk.do { |t|
+			t.mute;
+		}
+	}
+	*unmute { |trk|
+		if (trk.isNil, {
+			trk = tracks;
+		}, {
+			if (trk.isArray.not, {
+				trk = [trk];
+			});
+		});
+		trk.do { |t|
+			t.unmute;
+		}
 	}
 	*isJumping {
 		^jumpSection.notNil;

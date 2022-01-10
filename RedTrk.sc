@@ -3,7 +3,7 @@
 RedTrk {
 	classvar	<>playDict, <>stopDict, <>clearDict;
 	var	<key, <>item, <>sections,
-		<player, <isPlaying= false;
+		<player, <isPlaying= false, <isMuted = false;
 	*initClass {
 		playDict= (
 			\Pattern: {|item| item.play(RedMst.clock, quant:0)},
@@ -61,6 +61,9 @@ RedTrk {
 			}, {
 				player= item.play;
 			});
+			if (isMuted) {
+				player.mute;
+			};
 			isPlaying= true;
 		});
 	}
@@ -78,6 +81,22 @@ RedTrk {
 				player.stop;
 			});
 			isPlaying= false;
+		});
+	}
+	solo {
+		isMuted = false;
+		RedMst.solo(this);
+	}
+	mute {
+		isMuted = true;
+		if ((isPlaying && player.muteCount == 0), {
+			player.mute;
+		});
+	}
+	unmute {
+		isMuted = false;
+		if (isPlaying, {
+			player.unmute;
 		});
 	}
 	clear {
