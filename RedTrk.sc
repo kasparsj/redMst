@@ -48,6 +48,17 @@ RedTrk {
 		sections= argSections.asSequenceableCollection;
 		RedMst.add(this);
 	}
+	addSections { |secs|
+		if (secs.isArray.not) {
+			secs = [secs];
+		};
+		secs.do { |sec|
+			if (sections.indexOf(sec) == nil) {
+				sections = sections.add(sec);
+			};
+		};
+		RedMst.updateMaxSection(sections);
+	}
 	play {
 		var func;
 		if(isPlaying.not, {
@@ -89,15 +100,15 @@ RedTrk {
 	}
 	mute {
 		isMuted = true;
-		if ((isPlaying && player.muteCount == 0), {
+		if ((isPlaying and: { player.respondsTo(\mute) and: { player.muteCount == 0 }}), {
 			player.mute;
 		});
 	}
 	unmute {
 		isMuted = false;
-		if (isPlaying, {
+		if (isPlaying && player.respondsTo(\unmute)) {
 			player.unmute;
-		});
+		};
 	}
 	clear {
 		var func;

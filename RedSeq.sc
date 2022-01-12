@@ -29,7 +29,7 @@ RedSeq {
 	waitSecs {
 		var beats = sections[currentIndex][1];
 		^if (mode == \beats, {
-			(beats*RedMst.clock.tempo);
+			(beats * (1.0 / RedMst.clock.tempo));
 		}, {
 			beats - if (currentIndex > 0, { sections[currentIndex-1][1] }, { 0 });
 		});

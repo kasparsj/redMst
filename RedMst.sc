@@ -69,9 +69,7 @@ RedMst {
 	}
 	*add {|trk|
 		tracks.put(trk.key, trk);
-		if(trk.sections.size > 0 && trk.sections.includes(inf).not and:{trk.sections.maxItem>maxSection}, {
-			maxSection= trk.sections.maxItem;
-		});
+		this.updateMaxSection(trk.sections);
 	}
 	*remove {|trk|
 		trk.stop;
@@ -189,6 +187,9 @@ RedMst {
 			});
 		});
 		trk.do { |t|
+			if (t.isSymbol) {
+				t = this.at(t);
+			};
 			t.mute;
 		}
 	}
@@ -201,6 +202,9 @@ RedMst {
 			});
 		});
 		trk.do { |t|
+			if (t.isSymbol) {
+				t = this.at(t);
+			};
 			t.unmute;
 		}
 	}
@@ -237,5 +241,10 @@ RedMst {
 		stopAheadTime= dict[\stopAheadTime];
 		skipEmpty= dict[\skipEmpty];
 		action= dict[\action];
+	}
+	*updateMaxSection { |sections|
+		if(sections.size > 0 && sections.includes(inf).not and:{sections.maxItem>maxSection}, {
+			maxSection= sections.maxItem;
+		});
 	}
 }
