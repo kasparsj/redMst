@@ -79,15 +79,17 @@ RedSeq {
 					onLoop.value;
 				}
 			});
-		}
+		};
 	}
 	prev { |fromSched|
-		var prev = if (currentIndex > 0, {
-			currentIndex - 1;
-		}, {
-			0;
-		});
-		this.goto(prev, fromSched);
+		if (currentIndex.notNil) {
+			var prev = if (currentIndex > 0, {
+				currentIndex - 1;
+			}, {
+				0;
+			});
+			this.goto(prev, fromSched);
+		};
 	}
 	prSchedule {
 		waitStart = scheduler.seconds;
