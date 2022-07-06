@@ -70,14 +70,16 @@ RedSeq {
 		};
 	}
 	next { |fromSched|
-		if (currentIndex < (sections.size-1), {
-			this.goto(currentIndex + 1, fromSched);
-		}, {
-			this.stop;
-			if (onLoop != nil) {
-				onLoop.value;
-			}
-		});
+		if (currentIndex.notNil) {
+			if (currentIndex < (sections.size-1), {
+				this.goto(currentIndex + 1, fromSched);
+			}, {
+				this.stop;
+				if (onLoop != nil) {
+					onLoop.value;
+				}
+			});
+		}
 	}
 	prev { |fromSched|
 		var prev = if (currentIndex > 0, {
