@@ -94,6 +94,7 @@ RedMst {
 		if((clock.notNil && clock.isRunning), {
 			clock.schedAbs(clock.nextTimeOnGrid(quant)-stopAheadTime, {
 				tracks.do{|x| x.stop};
+				"RedMst: stopped".postln;
 				nil;
 			});
 		}, {
@@ -115,33 +116,36 @@ RedMst {
 		}, {
 			jumpSection= gotoSection;
 			clock.schedAbs(clock.nextTimeOnGrid(quant)-stopAheadTime, {
-				tracks.do{|x|
+				var trk = tracks.detect{|x|
 					if(x.sections.includes(inf).not, {
-						if(x.sections.includes(gotoSection).not and:{x.isPlaying}, {
-							x.stop;
-						});
+						(x.sections.includes(gotoSection).not and:{x.isPlaying});
+					}, {
+						false;
 					});
+				};
+				if (trk.notNil) {
+					trk.stop;
 				};
 				nil;
 			});
 			clock.schedAbs(clock.nextTimeOnGrid(quant), {
+				var trk;
 				section= gotoSection;
 				jumpSection= nil;
-				if(section>maxSection, {
-					"RedMst: reached the end".postln;
-				}, {
-					("RedMst: new section:"+section+"of"+maxSection).postln;
-				});
-				tracks.do{|x|
+				trk = tracks.detect{ |x|
 					if(x.sections.includes(inf).not, {
-						if(x.sections.includes(section) and:{x.isPlaying.not}, {
-							x.play;
-						});
+						(x.sections.includes(section) and:{x.isPlaying.not});
 					}, {
-						if(x.isPlaying.not, {
-							x.play;
-						});
+						x.isPlaying.not;
 					});
+				};
+				if(section>maxSection, {
+					("RedMst: section out of range, max: "+maxSection).postln;
+				}, {
+					("RedMst: play section: "+trk.key.asString+" ("+section+"of"+maxSection+")").postln;
+				});
+				if (trk.notNil) {
+					trk.play;
 				};
 				alreadyJumping= false;
 				action.value;
