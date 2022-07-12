@@ -93,13 +93,13 @@ RedMst {
 		isPlaying= false;
 		if((clock.notNil && clock.isRunning), {
 			clock.schedAbs(clock.nextTimeOnGrid(quant)-stopAheadTime, {
-				tracks.do{|x| x.stop};
+				tracks.do(_.stop);
 				"RedMst: stopped".postln;
 				nil;
 			});
 		}, {
 			"RedMst: clock is nil - stopping now".warn;
-			tracks.do{|x| x.stop};
+			tracks.do(_.stop);
 		});
 	}
 	*play {|startSection= 0|
@@ -116,23 +116,21 @@ RedMst {
 		}, {
 			jumpSection= gotoSection;
 			clock.schedAbs(clock.nextTimeOnGrid(quant)-stopAheadTime, {
-				var trk = tracks.detect{|x|
+				var trks = tracks.select{|x|
 					if(x.sections.includes(inf).not, {
 						(x.sections.includes(gotoSection).not and:{x.isPlaying});
 					}, {
 						false;
 					});
 				};
-				if (trk.notNil) {
-					trk.stop;
-				};
+				trks.do(_.stop);
 				nil;
 			});
 			clock.schedAbs(clock.nextTimeOnGrid(quant), {
-				var trk;
+				var trks;
 				section= gotoSection;
 				jumpSection= nil;
-				trk = tracks.detect{ |x|
+				trks = tracks.select{ |x|
 					if(x.sections.includes(inf).not, {
 						(x.sections.includes(section) and:{x.isPlaying.not});
 					}, {
@@ -142,11 +140,9 @@ RedMst {
 				if(section>maxSection, {
 					("RedMst: section out of range, max: "+maxSection).postln;
 				}, {
-					("RedMst: play section: "+trk.key.asString+" ("+section+"of"+maxSection+")").postln;
+					("RedMst: play section:"+trks.values.collect(_.key).asString+" ("+section+"of"+maxSection+")").postln;
 				});
-				if (trk.notNil) {
-					trk.play;
-				};
+				trks.do(_.play);
 				alreadyJumping= false;
 				action.value;
 				nil;
@@ -215,12 +211,12 @@ RedMst {
 	*isJumping {
 		^jumpSection.notNil;
 	}
-	
+
 	//--support for RedMstGUI
 	*makeWindow {|size= 24, skin|
 		^RedMstGUI(size, skin);
 	}
-	
+
 	//--support for RedGrandMst
 	*getState {
 		^(
