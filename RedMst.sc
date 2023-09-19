@@ -211,12 +211,12 @@ RedMst {
 	*isJumping {
 		^jumpSection.notNil;
 	}
-	
+
 	//--support for RedMstGUI
 	*makeWindow {|size= 24, skin|
 		^RedMstGUI(size, skin);
 	}
-	
+
 	//--support for RedGrandMst
 	*getState {
 		^(
