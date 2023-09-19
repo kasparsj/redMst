@@ -2,7 +2,7 @@
 
 RedTrk {
 	classvar <>playDict, <>stopDict, <>clearDict;
-	var	<key, <>item, <>sections,
+	var	<key, <>item, <>sections, <>options,
 		<player, <isPlaying= false, <isMuted = false,
 		<>onPlay, <>onStop;
 
@@ -33,7 +33,7 @@ RedTrk {
 	*new {|key, item, sections, options|
 		var trk= RedMst.at(key);
 		if(trk.isNil, {
-			^super.new.initRedTrk(key, item, sections);
+			^super.new.initRedTrk(key, item, sections, options);
 		}, {
 			if(item.isNil, {
 				^trk
@@ -45,10 +45,11 @@ RedTrk {
 			});
 		});
 	}
-	initRedTrk {|argKey, argItem, argSections|
-		key= argKey;
-		item= argItem;
-		sections= argSections.asSequenceableCollection;
+	initRedTrk {|argKey, argItem, argSections, argOptions|
+		key = argKey;
+		item = argItem;
+		sections = argSections.asSequenceableCollection;
+		options = argOptions;
 		RedMst.add(this);
 	}
 	addSections { |secs|
