@@ -79,7 +79,7 @@ RedSeq {
 					onLoop.value;
 				}
 			});
-		}
+		};
 	}
 	prev { |fromSched|
 		if (currentIndex.notNil) {
@@ -89,7 +89,7 @@ RedSeq {
 				0;
 			});
 			this.goto(prev, fromSched);
-		}
+		};
 	}
 	prSchedule {
 		waitStart = scheduler.seconds;

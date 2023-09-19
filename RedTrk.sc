@@ -1,10 +1,11 @@
 //redFrik - released under gnu gpl license
 
 RedTrk {
-	classvar	<>playDict, <>stopDict, <>clearDict;
+	classvar <>playDict, <>stopDict, <>clearDict;
 	var	<key, <>item, <>sections,
-	<player, <isPlaying= false, <isMuted = false,
-	<>onPlay, <>onStop;
+		<player, <isPlaying= false, <isMuted = false,
+		<>onPlay, <>onStop;
+
 	*initClass {
 		playDict= (
 			\Pattern: {|item| item.play(RedMst.clock, quant:0)},
