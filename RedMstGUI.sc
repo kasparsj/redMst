@@ -294,7 +294,7 @@ RedMstGUI4 : RedMstGUI2 {
 		guiUser = UserView(win, Rect(0, 0, win.bounds.width-7, 1))
 		.drawFunc_{|view|
 			var numSections = (RedMst.maxSection+1);
-			var w, h, str, trks;
+			var w, h, str, trks, btn;
 			var btnW = 50;
 			if(RedMst.tracks.notEmpty, {
 				w= view.bounds.width/numSections;
@@ -320,12 +320,16 @@ RedMstGUI4 : RedMstGUI2 {
 						});
 					});
 
-					guiPlay= Button(view, Rect(0, section*h, btnW, h*0.9))
-					.canFocus_(false)
-					.states_([["play", colFore, colBack], ["stop", colBack, colFore]])
-					.value_(if (section == RedMst.section and: { RedMst.isPlaying }, 1, 0))
-					.font_(fnt2)
-					.action_{|view| if(view.value==1, {RedMst.play(section)}, {RedMst.stop})};
+					btn= view.children.select({|c| c.name==("play" ++ section)}).first;
+					if (btn.isNil) {
+						btn = Button(view, Rect(0, section*h, btnW, h*0.9))
+						.name_("play" ++ section)
+						.canFocus_(false)
+						.states_([["play", colFore, colBack], ["stop", colBack, colFore]])
+						.font_(fnt2)
+						.action_{|view| if(view.value==1, {RedMst.play(section)}, {RedMst.stop})};
+					};
+					btn.value_(if (section == RedMst.section or: { section == RedMst.jumpSection } and: { RedMst.isPlaying }, 1, 0))
 				};
 			});
 		};
