@@ -3,7 +3,8 @@
 RedTrk {
 	classvar	<>playDict, <>stopDict, <>clearDict;
 	var	<key, <>item, <>sections,
-		<player, <isPlaying= false, <isMuted = false;
+	<player, <isPlaying= false, <isMuted = false,
+	<>onPlay, <>onStop;
 	*initClass {
 		playDict= (
 			\Pattern: {|item| item.play(RedMst.clock, quant:0)},
@@ -11,7 +12,8 @@ RedTrk {
 			\BBCut2: {|item| item.play(RedMst.clock)},
 			\RedMOD: {|item| item.play(clock:RedMst.clock, quant:0)},
 			\RedXM: {|item| item.play(clock:RedMst.clock, quant:0)},
-			\RedWindow: {|item| {item.play}.defer; item}
+			\RedWindow: {|item| {item.play}.defer; item},
+			\Synth: {|item| item.run},
 		);
 		stopDict= (
 			\Synth: {|player|
@@ -27,7 +29,7 @@ RedTrk {
 			\RedWindow: {|player| player.close}
 		);
 	}
-	*new {|key, item, sections|
+	*new {|key, item, sections, options|
 		var trk= RedMst.at(key);
 		if(trk.isNil, {
 			^super.new.initRedTrk(key, item, sections);
@@ -76,6 +78,9 @@ RedTrk {
 				player.mute;
 			};
 			isPlaying= true;
+			if (onPlay.isFunction) {
+				onPlay.value;
+			};
 		});
 	}
 	stop {
@@ -92,6 +97,9 @@ RedTrk {
 				player.stop;
 			});
 			isPlaying= false;
+			if (onStop.isFunction) {
+				onStop.value;
+			};
 		});
 	}
 	solo {

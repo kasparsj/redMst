@@ -5,7 +5,7 @@ RedTrk2 : RedTrk {
 	initRedTrk {|argKey, argItem, argSections|
 		var channels, rate;
 		key= argKey;
-		if(argItem.isKindOf(Pbind), {
+		if(argItem.isKindOf(Pbind) or: { argItem.isKindOf(Pmono) }, {
 			argItem.patternpairs.pairsDo{|key, pat|
 				var desc;
 				if(key==\instrument, {
