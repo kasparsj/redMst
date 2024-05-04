@@ -50,7 +50,7 @@
 //don't use BBCut2's CutBuf1 as it will not stop correctly.  replace with CutBuf2 or CutBuf3.
 
 RedMst {
-	classvar	<tracks, <>clock, <>quant= 4,
+	classvar <items, <>clock, <>quant= 4,
 			<section= 0, <maxSection= 0, <jumpSection,
 			<>stopAheadTime= 0.05,
 			<>skipEmpty= false,
@@ -58,27 +58,27 @@ RedMst {
 			<isPlaying= false,
 			alreadyJumping= false;
 	*initClass {
-		tracks= ();
+		items= ();
 		clock= TempoClock.default;
 		CmdPeriod.add({
 			alreadyJumping = false;
 		});
 	}
 	*at {|key|
-		^tracks[key];
+		^items[key];
 	}
-	*add {|trk|
-		tracks.put(trk.key, trk);
-		this.updateMaxSection(trk.sections);
+	*add {|item|
+		items.put(item.key, item);
+		this.updateMaxSection(item.sections);
 	}
-	*remove {|trk|
-		trk.stop;
-		tracks.put(trk.key, nil);
+	*remove {|item|
+		item.stop;
+		items.put(item.key, nil);
 	}
 	*clear {
 		isPlaying= false;
-		tracks.do{|x| x.clear};
-		tracks= ();
+		items.do{|x| x.clear};
+		items= ();
 		section= 0;
 		maxSection= 0;
 		jumpSection= nil;
@@ -93,13 +93,13 @@ RedMst {
 		isPlaying= false;
 		if((clock.notNil && clock.isRunning), {
 			clock.schedAbs(clock.nextTimeOnGrid(quant)-stopAheadTime, {
-				tracks.do(_.stop);
+				items.do(_.stop);
 				"RedMst: stopped".postln;
 				nil;
 			});
 		}, {
 			"RedMst: clock is nil - stopping now".warn;
-			tracks.do(_.stop);
+			items.do(_.stop);
 		});
 	}
 	*play {|startSection= 0|
@@ -116,33 +116,14 @@ RedMst {
 		}, {
 			jumpSection= gotoSection;
 			clock.schedAbs(clock.nextTimeOnGrid(quant)-stopAheadTime, {
-				var trks = tracks.select{|x|
-					if(x.sections.includes(inf).not, {
-						(x.sections.includes(gotoSection).not and:{x.isPlaying});
-					}, {
-						false;
-					});
-				};
-				trks.do(_.stop);
+				this.prStop(gotoSection);
 				nil;
 			});
 			clock.schedAbs(clock.nextTimeOnGrid(quant), {
-				var trks;
 				section= gotoSection;
 				jumpSection= nil;
-				trks = tracks.select{ |x|
-					if(x.sections.includes(inf).not, {
-						(x.sections.includes(section) and:{x.isPlaying.not});
-					}, {
-						x.isPlaying.not;
-					});
-				};
-				if(section>maxSection, {
-					("RedMst: section out of range, max: "+maxSection).postln;
-				}, {
-					("RedMst: play section:"+trks.values.collect(_.key).asString+" ("+section+"of"+maxSection+")").postln;
-				});
-				trks.do(_.play);
+				this.prPlay(this.events, section);
+				this.prPlay(this.tracks, section);
 				alreadyJumping= false;
 				action.value;
 				nil;
@@ -150,10 +131,41 @@ RedMst {
 			alreadyJumping= true;
 		});
 	}
+	*events {
+		^items.select({|x| x.isKindOf(RedEvent) });
+	}
+	*tracks {
+		^items.select({|x| x.isKindOf(RedTrk) });
+	}
+	*prStop { |section|
+		var itms = items.select{|x|
+			if(x.sections.includes(inf).not, {
+				(x.sections.includes(section).not and:{x.isPlaying});
+			}, {
+				false;
+			});
+		};
+		itms.do(_.stop);
+	}
+	*prPlay { |itms, section|
+		itms = itms.select{ |x|
+			if(x.sections.includes(inf).not, {
+				(x.sections.includes(section) and:{x.isPlaying.not});
+			}, {
+				x.isPlaying.not;
+			});
+		};
+		if(section>maxSection, {
+			("RedMst: section out of range, max: "+maxSection).postln;
+		}, {
+			("RedMst: play section:"+itms.values.collect(_.key).asString+" ("+section+"of"+maxSection+")").postln;
+		});
+		itms.do(_.play);
+	}
 	*next {
 		var jump= section+1;
 		if(skipEmpty, {
-			while({jump<maxSection and:{tracks.any{|x| x.sections.includes(jump)}.not}}, {
+			while({jump<maxSection and:{items.any{|x| x.sections.includes(jump)}.not}}, {
 				jump= jump+1;
 			});
 		});
@@ -162,7 +174,7 @@ RedMst {
 	*prev {
 		var jump= section-1;
 		if(skipEmpty, {
-			while({jump>=0 and:{tracks.any{|x| x.sections.includes(jump)}.not}}, {
+			while({jump>=0 and:{items.any{|x| x.sections.includes(jump)}.not}}, {
 				jump= jump-1;
 			});
 		});
@@ -172,7 +184,7 @@ RedMst {
 		if (trk.isArray.not, {
 			trk = [trk];
 		});
-		tracks.do {|t|
+		items.do {|t|
 			if (trk.includes(t).not) {
 				t.mute;
 			};
@@ -180,7 +192,7 @@ RedMst {
 	}
 	*mute { |trk|
 		if (trk.isNil, {
-			trk = tracks;
+			trk = items;
 		}, {
 			if (trk.isArray.not, {
 				trk = [trk];
@@ -195,7 +207,7 @@ RedMst {
 	}
 	*unmute { |trk|
 		if (trk.isNil, {
-			trk = tracks;
+			trk = items;
 		}, {
 			if (trk.isArray.not, {
 				trk = [trk];
@@ -220,7 +232,7 @@ RedMst {
 	//--support for RedGrandMst
 	*getState {
 		^(
-			\tracks: tracks,
+			\items: items,
 			\clock: clock,
 			\quant: quant,
 			\section: section,
@@ -232,7 +244,7 @@ RedMst {
 		)
 	}
 	*setState {|dict|
-		tracks= dict[\tracks];
+		items= dict[\items];
 		clock= dict[\clock];
 		quant= dict[\quant];
 		section= dict[\section];

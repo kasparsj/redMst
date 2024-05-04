@@ -208,11 +208,11 @@ RedMstGUI3 : RedMstGUI2 {
 		guiUser= UserView(win, Rect(0, 0, win.bounds.width-7, 1))
 			.drawFunc_{|view|
 				var w, h, str;
-				if(RedMst.tracks.notEmpty, {
+				if(RedMst.items.notEmpty, {
 					w= view.bounds.width/(RedMst.maxSection+1);
-					h= size;//view.bounds.height/RedMst.tracks.size;
+					h= size;//view.bounds.height/RedMst.items.size;
 					Pen.font_(fnt2);
-					RedMst.tracks.do{|trk, y|
+					RedMst.items.do{|trk, y|
 						Pen.color_(colFore);
 						Pen.strokeRect(Rect(0, y*h, view.bounds.width, h*0.9));
 						if(trk.sections.includes(inf), {
@@ -252,8 +252,8 @@ RedMstGUI3 : RedMstGUI2 {
 						guiTempo.string_("-");
 					};
 					guiQuant.string_(RedMst.quant);
-					if(lastNumTracks!=RedMst.tracks.size, {
-						lastNumTracks= RedMst.tracks.size;
+					if(lastNumTracks!=RedMst.items.size, {
+						lastNumTracks= RedMst.items.size;
 						win.bounds= win.bounds.setExtent(
 							win.bounds.width,
 							(size*6+25+(lastNumTracks*size)).min(Window.screenBounds.height-50)
@@ -298,12 +298,12 @@ RedMstGUI4 : RedMstGUI2 {
 			var w, h, str, trks, btn, trView, volTrk, slider;
 			var halfWidth = view.bounds.width/2;
 			var btnW = 50;
-			if(RedMst.tracks.notEmpty, {
+			if(RedMst.items.notEmpty, {
 				h= size;
 				Pen.font_(fnt2);
 				// sections
 				numSections.do{|section|
-					trks = RedMst.tracks.select{ |x|
+					trks = RedMst.items.select{ |x|
 						x.sections.includes(section);
 					};
 					str= trks.keys.array.select({|x| x.notNil}).join(", ");
@@ -316,7 +316,7 @@ RedMstGUI4 : RedMstGUI2 {
 					if (section == RedMst.section) {
 						Pen.fillRect(Rect(btnW+5, section*h, halfWidth-btnW-5, h*0.9));
 					};
-					if(RedMst.isJumping and: { section == RedMst.jumpSection }, {
+					if(RedMst.isJumping and: { section == RedMst.jumpSection }, {§
 						if((RedMst.clock.beats*2).asInteger%2==0, {
 							Pen.fillRect(Rect(btnW+5, section*h,  halfWidth-btnW-5, h*0.9));
 						});
@@ -338,7 +338,7 @@ RedMstGUI4 : RedMstGUI2 {
 				if (trView.isNil) {
 					trView = View(view, Rect(halfWidth, 0, halfWidth, view.bounds.height));
 					trView.name = "tracks";
-					trks = RedMst.tracks.select{ |x|
+					trks = RedMst.items.select{ |x|
 						x.sections.includes(currentSection);
 					};
 					trks.do {|track, i|
