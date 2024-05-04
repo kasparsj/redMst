@@ -6,15 +6,15 @@ RedMstGUI {
 		guiPlay, guiPrev, guiNext, guiSection, guiMaxSection, guiTempo, guiQuant,
 		guiMetro, guiUser,
 		fnt, colBack, colFore, colBack2, colFore2, task;
-	*new {|size= 24, skin|
-		^super.new.initRedMstGUI(size, skin);
+	*new {|size= 24, skin, score= nil|
+		^super.new.initRedMstGUI(size, skin, score);
 	}
-	initRedMstGUI {|size, skin|
-		this.prInitInterface(size, skin);
+	initRedMstGUI {|size, skin, score|
+		this.prInitInterface(size, skin, score);
 		this.prInitTask(size);
 		this.prInitCleanUp;
 	}
-	prInitInterface {|size, skin|
+	prInitInterface {|size, skin, score|
 		if(skin.isNil, {
 			GUI.skins.put(\redMstGUI, (
 				background: Color.red(0.8),
@@ -42,18 +42,18 @@ RedMstGUI {
 				{uni==32} {guiPlay.valueAction_(1-guiPlay.value)}//space
 			;
 		};
-		this.prDrawInterface(size);
+		this.prDrawInterface(size, score);
 	}
 	prBounds { |size|
 		^Rect(300, Window.screenBounds.height-50, size*9.5+20, size*6+25);
 	}
-	prDrawInterface { |size|
+	prDrawInterface { |size, score|
 		this.prDrawButtons(size);
 		this.prInitMetro(size);
 		win.view.decorator.nextLine;
 
 		this.prDrawInfo(size);
-		this.prInitUser(size);
+		this.prInitUser(size, score);
 
 		win.view.children.do{|x|
 			if(x.respondsTo(\font), {x.font_(fnt)});
@@ -88,7 +88,7 @@ RedMstGUI {
 		win.view.decorator.nextLine;
 	}
 	prInitUser {}
-	prInitTask {|size|
+	prInitTask {|size, score|
 		task= Routine{
 			var lastJump;
 			inf.do{
@@ -211,7 +211,7 @@ RedMstGUI2 : RedMstGUI {
 }
 
 RedMstGUI3 : RedMstGUI2 {
-	prInitUser {|size|
+	prInitUser {|size, score|
 		var fnt2= fnt.copy.size_(9);
 		guiUser= UserView(win, Rect(0, 0, win.bounds.width-7, 1))
 			.drawFunc_{|view|
@@ -297,7 +297,7 @@ RedMstGUI3 : RedMstGUI2 {
 }
 
 RedMstGUI4 : RedMstGUI2 {
-	prInitUser {|size|
+	prInitUser {|size, score|
 		var fnt2= fnt.copy.size_(9);
 		guiUser = UserView(win, Rect(0, 0, win.bounds.width-7, 1))
 		.drawFunc_{|view|

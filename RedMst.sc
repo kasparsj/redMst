@@ -137,6 +137,13 @@ RedMst {
 	*events {
 		^items.select({|x| x.isKindOf(RedTrk).not });
 	}
+	*maxEvents {
+		^(maxSection+1).collect({ |section|
+			this.events.select({|x|
+				(x.sections.includes(section));
+			}).size;
+		}).maxItem;
+	}
 	*tracks {
 		^items.select({|x| x.isKindOf(RedTrk) });
 	}

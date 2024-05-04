@@ -2,13 +2,13 @@ RedMstSessionGUI : RedMstGUI2 {
 	prBounds { |size|
 		^Rect(300, Window.screenBounds.height-50, size*30, size*12);
 	}
-	prDrawInterface { |size|
+	prDrawInterface { |size, score|
 		this.prDrawInfo(size);
 		this.prDrawButtons(size);
 		this.prInitMetro(size);
 		win.view.decorator.nextLine;
 
-		this.prInitUser(size);
+		this.prInitUser(size, score);
 
 		win.view.children.do{|x|
 			if(x.respondsTo(\font), {x.font_(fnt)});
@@ -24,7 +24,7 @@ RedMstSessionGUI : RedMstGUI2 {
 		StaticText(win, (size*4)@(size*1.5)).string_("quant:");
 		guiQuant= StaticText(win, (size*1.5)@(size*1.5));
 	}
-	prInitUser {|size|
+	prInitUser {|size, score|
 		var fnt2= fnt.copy.size_(9);
 		guiUser = UserView(win, Rect(0, 0, win.bounds.width-7, 1))
 		.drawFunc_{|view|
@@ -35,36 +35,57 @@ RedMstSessionGUI : RedMstGUI2 {
 			var btnW = 50;
 			var tracks = RedMst.tracks.values.sort({|a, b| a.key < b.key});
 			var events = RedMst.events.values.sort({|a, b| a.key < b.key});
-			var trackW = ((viewWidth - btnW - 20) / (tracks.size + 1)).max(50);
+			var maxEvents = if (events.size > 0, { RedMst.maxEvents.min(2) }, { 0 });
+			var x = btnW + if (score.notNil, { 40 }, { 20 });
+			var trackW = ((viewWidth - x) / (tracks.size + maxEvents)).max(50);
 			if(tracks.notEmpty, {
 				h= size;
 				Pen.font_(fnt2);
 				// tracks
-				tracks.do {|x, i|
-					this.prDrawTrack(x.key, Rect(btnW+20 + (i*trackW), 0, trackW, h*0.9));
+				tracks.do {|trk, i|
+					this.prDrawTrack(trk.key, Rect(x + (i*trackW), 0, trackW, h*0.9));
 				};
 				// events track
-				this.prDrawTrack("Events", Rect(btnW+20 + (tracks.size*trackW), 0, trackW, h*0.9));
+				this.prDrawTrack("Events", Rect(x + (tracks.size*trackW), 0, trackW*maxEvents, h*0.9));
 				// sections
 				numSections.do{|section|
 					var evts, evW;
+					x = 0;
+					// duration
+					if (score.notNil) {
+						Pen.fillColor_(colFore2);
+						Pen.stringAtPoint(score.beats[section].asString, Point(x, (section+1)*h+5));
+						x = x + 20
+					};
+					// play/stop section
+					btn = view.children.select({|c| c.name==("play" ++ section)}).first;
+					if (btn.isNil) {
+						btn = this.prPlaySectionBtn(view, Rect(x, (section+1)*h, btnW, h*0.9), section)
+						.font_(fnt2);
+					};
+					btn.value_(if (section == RedMst.section or: { section == RedMst.jumpSection } and: { RedMst.isPlaying }, 1, 0));
+					x = x + btnW;
 					// index
 					Pen.fillColor_(colFore2);
-					Pen.stringAtPoint(section.asString, Point(0, (section+1)*h+5));
+					Pen.stringAtPoint(section.asString, Point(x+5, (section+1)*h+5));
+					x = x + 20;
 					// tracks
-					tracks.do{ |x, i|
-						if (x.sections.includes(section)) {
-							this.prDrawTrack(x.key, Rect(btnW+20 + (i*trackW), (section+1)*h, trackW, h*0.9));
+					tracks.do{ |trk, i|
+						if (trk.sections.includes(section)) {
+							this.prDrawTrack(trk.key, Rect(x, (section+1)*h, trackW, h*0.9));
 						};
+						x = x + trackW;
 					};
 					// events
-					evts = events.select({|x|
-						(x.sections.includes(section));
+					evts = events.select({|ev|
+						(ev.sections.includes(section));
 					});
-					evW = trackW / evts.size;
-					evts.do{ |x, i|
-						this.prDrawTrack(x.key, Rect(btnW+20 + (tracks.size*trackW) + (i*evW), (section+1)*h, evW, h*0.9));
+					evW = ((trackW*maxEvents) / evts.size).min(trackW);
+					evts.do{ |ev, i|
+						this.prDrawTrack(ev.key, Rect(x, (section+1)*h, evW, h*0.9));
+						x = x + evW;
 					};
+					// highlight
 					Pen.fillColor_(colBack2);
 					if (section == RedMst.section) {
 						Pen.fillRect(Rect(btnW+20, (section+1)*h, viewWidth-btnW-20, h*0.9));
@@ -74,42 +95,28 @@ RedMstSessionGUI : RedMstGUI2 {
 							Pen.fillRect(Rect(btnW+20, (section+1)*h,  viewWidth-btnW-20, h*0.9));
 						});
 					});
-
-					btn = view.children.select({|c| c.name==("play" ++ section)}).first;
-					if (btn.isNil) {
-						btn = this.prPlaySectionBtn(view, Rect(15, (section+1)*h, btnW, h*0.9), section)
-						.font_(fnt2);
-					};
-					btn.value_(if (section == RedMst.section or: { section == RedMst.jumpSection } and: { RedMst.isPlaying }, 1, 0))
 				};
-				// tracks in current section
-				// trView = view.children.detect({|c| c.name == "tracks"});
-				// if (trView.isNil) {
-				// 	trView = View(view, Rect(halfWidth, 0, halfWidth, view.bounds.height));
-				// 	trView.name = "tracks";
-				// 	trks = RedMst.tracks.select{ |x|
-				// 		x.sections.includes(currentSection);
-				// 	};
-				// 	trks.do {|track, i|
-				// 		if (track.item.respondsTo(\vol_)) {
-				// 			slider = trView.children.detect({|c| c.name==("vol" ++ track.key.asString)});
-				// 			if (slider.isNil) {
-				// 				slider = Slider(trView, Rect(btnW+5, i*h, halfWidth-btnW-5, h*0.9))
-				// 				.name_("vol" ++ track.key.asString)
-				// 				.value_(track.item.vol)
-				// 				.canFocus_(false)
-				// 				.action_({|view| track.item.vol = view.value });
-				// 			};
-				// 			slider.moveTo(btnW+5, i*h);
-				// 		};
-				// 		StaticText(trView, Rect(btnW+5, i*h, halfWidth-btnW-5, h*0.9))
-				// 		.font_(fnt2)
-				// 		.acceptsMouse_(false)
-				// 		.string_(track.key.asString)
-				// 		.stringColor_(Color.white)
-				// 		.align_(\left);
-				// 	};
-				// };
+				// mixer
+				x = btnW + if (score.notNil, { 40 }, { 20 });
+				tracks.do {|track, i|
+					if (track.item.respondsTo(\vol_)) {
+						slider = view.children.detect({|c| c.name==("vol" ++ track.key.asString)});
+						if (slider.isNil) {
+							slider = Slider(view, Rect(x + (i*trackW), (numSections+1)*h, (trackW-50).max(50), 150))
+							.name_("vol" ++ track.key.asString)
+							.value_(track.item.vol)
+							.canFocus_(false)
+							.action_({|view| track.item.vol = view.value });
+						};
+						slider.moveTo(x + (i*trackW), (numSections+1)*h);
+					};
+					/*StaticText(view, Rect(x + (i*trackW), (numSections+1)*h, trackW, h*0.9))
+					.font_(fnt2)
+					.acceptsMouse_(false)
+					.string_(track.key.asString)
+					.stringColor_(Color.white)
+					.align_(\left);*/
+				};
 			});
 		};
 	}
@@ -148,11 +155,11 @@ RedMstSessionGUI : RedMstGUI2 {
 						lastNumSections= (RedMst.maxSection+1);
 						win.bounds= win.bounds.setExtent(
 							size*25*2+20.min(Window.screenBounds.width - 50),
-							(size*6+25+(lastNumSections*size)).min(Window.screenBounds.height-50)
+							((size*2)+25+(lastNumSections*size)+150).min(Window.screenBounds.height-50)
 						);
 						guiUser.bounds= guiUser.bounds.setExtent(
 							win.bounds.width-7,
-							lastNumSections*size
+							(lastNumSections+1)*size+150
 						);
 					}, {
 						guiMetro.refresh;
