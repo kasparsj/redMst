@@ -2,7 +2,7 @@ RedFn {
 	var <startFn;
 	var <stopFn;
 
-	*new { |startFn, stopFn|
+	*new { |startFn, stopFn=nil|
 		// todo: validate startFn, stopFn
 		^super.newCopyArgs(startFn, stopFn);
 	}
@@ -12,6 +12,8 @@ RedFn {
 	}
 
 	stop {
-		stopFn.value;
+		if (stopFn.notNil, {
+			stopFn.value;
+		});
 	}
 }

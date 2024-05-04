@@ -1,9 +1,8 @@
 //redFrik - released under gnu gpl license
 
-RedTrk {
+RedTrk : RedEvent {
 	classvar <>playDict, <>stopDict, <>clearDict;
-	var	<key, <>item, <>sections, <>options,
-		<player, <isPlaying= false, <isMuted = false,
+	var	<player, <isPlaying= false, <isMuted = false,
 		<>onPlay, <>onStop;
 
 	*initClass {
@@ -29,39 +28,6 @@ RedTrk {
 		clearDict= (
 			\RedWindow: {|player| player.close}
 		);
-	}
-	*new {|key, item, sections, options|
-		var trk= RedMst.at(key);
-		if(trk.isNil, {
-			^super.new.initRedTrk(key, item, sections, options);
-		}, {
-			if(item.isNil, {
-				^trk
-			}, {
-				("RedTrk: replacing track"+key).inform;
-				trk.stop;							//stop previous item
-				trk.item= item;					//swap items
-				trk.sections= sections.asSequenceableCollection;
-			});
-		});
-	}
-	initRedTrk {|argKey, argItem, argSections, argOptions|
-		key = argKey;
-		item = argItem;
-		sections = argSections.asSequenceableCollection;
-		options = argOptions;
-		RedMst.add(this);
-	}
-	addSections { |secs|
-		if (secs.isArray.not) {
-			secs = [secs];
-		};
-		secs.do { |sec|
-			if (sections.indexOf(sec) == nil) {
-				sections = sections.add(sec);
-			};
-		};
-		RedMst.updateMaxSection(sections);
 	}
 	play {
 		var func;
@@ -135,9 +101,6 @@ RedTrk {
 		}, {
 			player.free;
 		});
-	}
-	printOn {|stream|
-		stream<<this.class.name<<$ <<key<<$ <<item.class.name<<$ <<sections
 	}
 	storeArgs {
 		^[key, item, sections]
