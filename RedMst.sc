@@ -68,6 +68,9 @@ RedMst {
 		^items[key];
 	}
 	*add {|item|
+		if (item.isKindOf(RedEvent).not) {
+			("RedMst.add: invalid item type: " ++ item.class.asString).throw;
+		};
 		items.put(item.key, item);
 		this.updateMaxSection(item.sections);
 	}
@@ -132,7 +135,7 @@ RedMst {
 		});
 	}
 	*events {
-		^items.select({|x| x.isKindOf(RedEvent) });
+		^items.select({|x| x.isKindOf(RedTrk).not });
 	}
 	*tracks {
 		^items.select({|x| x.isKindOf(RedTrk) });
