@@ -28,8 +28,7 @@ RedMstGUI {
 		colFore= skin.foreground;
 		colBack2= colBack.complementary.alpha_(0.3);
 		colFore2= colFore.complementary.alpha_(0.7);
-		win= Window("RedMst", Rect(300, Window.screenBounds.height-50, size*9.5+20, size*6+25), false)
-			.front;
+		win= Window("RedMst", this.prBounds(size), false).front;
 		if(Main.versionAtMost(3, 4) and:{GUI.scheme!=\cocoa}, {
 			win.alpha_(skin.unfocus ? 0.9);
 		});
@@ -43,7 +42,25 @@ RedMstGUI {
 				{uni==32} {guiPlay.valueAction_(1-guiPlay.value)}//space
 			;
 		};
+		this.prDrawInterface(size);
+	}
+	prBounds { |size|
+		^Rect(300, Window.screenBounds.height-50, size*9.5+20, size*6+25);
+	}
+	prDrawInterface { |size|
+		this.prDrawButtons(size);
+		this.prInitMetro(size);
+		win.view.decorator.nextLine;
 
+		this.prDrawInfo(size);
+		this.prInitUser(size);
+
+		win.view.children.do{|x|
+			if(x.respondsTo(\font), {x.font_(fnt)});
+			if(x.respondsTo(\stringColor_), {x.stringColor_(colFore)});
+		};
+	}
+	prDrawButtons { |size|
 		guiPlay= Button(win, (size*4)@(size*1.5))
 			.canFocus_(false)
 			.states_([["play", colFore, colBack], ["stop", colBack, colFore]])
@@ -56,10 +73,9 @@ RedMstGUI {
 			.canFocus_(false)
 			.states_([[">", colFore, colBack]])
 			.action_{|view| RedMst.next};
-
-		this.prInitMetro(size);
-		win.view.decorator.nextLine;
-
+	}
+	prInitMetro {}
+	prDrawInfo { |size|
 		StaticText(win, (size*4)@(size*1.5)).string_("sect:");
 		guiSection= StaticText(win, (size*2)@(size*1.5));
 		guiMaxSection= StaticText(win, (size*3.25)@(size*1.5));
@@ -70,15 +86,7 @@ RedMstGUI {
 		StaticText(win, (size*4)@(size*1.5)).string_("quant:");
 		guiQuant= StaticText(win, (size*1.5)@(size*1.5));
 		win.view.decorator.nextLine;
-
-		this.prInitUser(size);
-
-		win.view.children.do{|x|
-			if(x.respondsTo(\font), {x.font_(fnt)});
-			if(x.respondsTo(\stringColor_), {x.stringColor_(colFore)});
-		};
 	}
-	prInitMetro {}
 	prInitUser {}
 	prInitTask {|size|
 		task= Routine{
