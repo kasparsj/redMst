@@ -54,4 +54,18 @@ RedEvent {
 	printOn {|stream|
 		stream<<this.class.name<<$ <<key<<$ <<item.class.name<<$ <<sections
 	}
+	option { |name|
+		^if (options.isKindOf(Dictionary)) {
+			options[name];
+		} {
+			if (options.isArray) {
+				options.asDict[name];
+			} {
+				nil;
+			}
+		};
+	}
+	color {
+		^this.option(\color);
+	}
 }

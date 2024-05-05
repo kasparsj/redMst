@@ -23,11 +23,20 @@ RedSeq {
 		mode = m ? \beats;
 		scheduler = TempoClock.new;
 	}
+	sectionAt { |index|
+		^sections[index][0];
+	}
+	beatsAt { |index|
+		^sections[index][1];
+	}
 	currentSection {
-		^sections[currentIndex][0];
+		^this.sectionAt(currentIndex);
+	}
+	currentBeats {
+		^this.beatsAt(currentIndex);
 	}
 	waitSecs {
-		var beats = sections[currentIndex][1];
+		var beats = this.currentBeats;
 		^if (mode == \beats, {
 			(beats * (1.0 / RedMst.clock.tempo));
 		}, {

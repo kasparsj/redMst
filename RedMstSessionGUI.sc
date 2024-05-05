@@ -2,13 +2,13 @@ RedMstSessionGUI : RedMstGUI2 {
 	prBounds { |size|
 		^Rect(300, Window.screenBounds.height-50, size*30, size*12);
 	}
-	prDrawInterface { |size, score|
+	prDrawInterface { |size|
 		this.prDrawInfo(size);
 		this.prDrawButtons(size);
 		this.prInitMetro(size);
 		win.view.decorator.nextLine;
 
-		this.prInitUser(size, score);
+		this.prInitUser(size);
 
 		win.view.children.do{|x|
 			if(x.respondsTo(\font), {x.font_(fnt)});
@@ -24,7 +24,7 @@ RedMstSessionGUI : RedMstGUI2 {
 		StaticText(win, (size*4)@(size*1.5)).string_("quant:");
 		guiQuant= StaticText(win, (size*1.5)@(size*1.5));
 	}
-	prInitUser {|size, score|
+	prInitUser {|size|
 		var fnt2= fnt.copy.size_(9);
 		guiUser = UserView(win, Rect(0, 0, win.bounds.width-7, 1))
 		.drawFunc_{|view|
@@ -36,7 +36,7 @@ RedMstSessionGUI : RedMstGUI2 {
 			var tracks = RedMst.tracks.values.sort({|a, b| a.key < b.key});
 			var events = RedMst.events.values.sort({|a, b| a.key < b.key});
 			var maxEvents = if (events.size > 0, { RedMst.maxEvents.min(2) }, { 0 });
-			var x = btnW + if (score.notNil, { 40 }, { 20 });
+			var x = btnW + if (seq.notNil, { 40 }, { 20 });
 			var trackW = ((viewWidth - x) / (tracks.size + maxEvents)).max(50);
 			if(tracks.notEmpty, {
 				h= size;
@@ -52,9 +52,9 @@ RedMstSessionGUI : RedMstGUI2 {
 					var evts, evW;
 					x = 0;
 					// duration
-					if (score.notNil) {
+					if (seq.notNil) {
 						Pen.fillColor_(colFore2);
-						Pen.stringAtPoint(score.beats[section].asString, Point(x, (section+1)*h+5));
+						Pen.stringAtPoint(seq.beatsAt(section).asString, Point(x, (section+1)*h+5));
 						x = x + 20
 					};
 					// play/stop section
@@ -72,7 +72,8 @@ RedMstSessionGUI : RedMstGUI2 {
 					// tracks
 					tracks.do{ |trk, i|
 						if (trk.sections.includes(section)) {
-							this.prDrawTrack(trk.key, Rect(x, (section+1)*h, trackW, h*0.9));
+							var color = trk.color ?? { Color.hsv(i * 1.0/tracks.size, 1, 1) };
+							this.prDrawTrack(trk.key, Rect(x, (section+1)*h, trackW, h*0.9), color);
 						};
 						x = x + trackW;
 					};
@@ -97,7 +98,7 @@ RedMstSessionGUI : RedMstGUI2 {
 					});
 				};
 				// mixer
-				x = btnW + if (score.notNil, { 40 }, { 20 });
+				x = btnW + if (seq.notNil, { 40 }, { 20 });
 				tracks.do {|track, i|
 					if (track.item.respondsTo(\vol_)) {
 						slider = view.children.detect({|c| c.name==("vol" ++ track.key.asString)});
@@ -120,18 +121,18 @@ RedMstSessionGUI : RedMstGUI2 {
 			});
 		};
 	}
-	prDrawTrack { |name, rect|
-		Pen.color_(colFore);
-		Pen.strokeRect(rect);
+	prDrawTrack { |name, rect, color, margin=1|
+		Pen.color_(color ? colFore);
+		Pen.fillRect(Rect(rect.left+margin, rect.top+margin, rect.width-(2*margin),  rect.height-(2*margin)));
 		Pen.fillColor_(colFore2);
-		Pen.stringAtPoint(name, Point(rect.left+5, rect.top));
+		Pen.stringAtPoint(name, Point(rect.left+5, rect.top+5));
 	}
 	prPlaySectionBtn { |view, rect, section|
 		^Button(view, rect)
 		.name_("play" ++ section)
 		.canFocus_(false)
 		.states_([["play", colFore, colBack], ["stop", colBack, colFore]])
-		.action_{|view| if(view.value==1, {RedMst.play(section)}, {RedMst.stop})};
+		.action_{|view| if(view.value==1, { this.prPlay }, { this.prStop })};
 	}
 	prInitTask {|size|
 		task= Routine{
