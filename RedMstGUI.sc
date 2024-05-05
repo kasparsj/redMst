@@ -127,7 +127,7 @@ RedMstGUI {
 		}.play(RedMst.clock);
 	}
 	prPlay { |section|
-		if (seq.notNil, { seq.play(section) }, { RedMst.play(section) });
+		if (seq.notNil, { seq.goto(section) }, { RedMst.play(section) });
 	}
 	prStop {
 		if (seq.notNil, { seq.stop }, { RedMst.stop });

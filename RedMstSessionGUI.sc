@@ -122,7 +122,7 @@ RedMstSessionGUI : RedMstGUI2 {
 		.name_("play" ++ section)
 		.canFocus_(false)
 		.states_([["play", colFore, colBack], ["stop", colBack, colFore]])
-		.action_{|view| if(view.value==1, { this.prPlay }, { this.prStop })};
+		.action_{|view| if(view.value==1, { this.prPlay(section) }, { this.prStop })};
 	}
 	prInitTask {|size|
 		task= Routine{
