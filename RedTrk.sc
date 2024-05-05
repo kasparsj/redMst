@@ -1,6 +1,6 @@
 //redFrik - released under gnu gpl license
 
-RedTrk : RedEvent {
+RedTrk : RedClip {
 	classvar <>playDict, <>stopDict, <>clearDict;
 	var	<player, <isPlaying= false, <isMuted = false,
 		<>onPlay, <>onStop;
@@ -28,6 +28,9 @@ RedTrk : RedEvent {
 		clearDict= (
 			\RedWindow: {|player| player.close}
 		);
+	}
+	*new {|key, item, sections, options|
+		^super.new(key, key, item, sections, options);
 	}
 	play {
 		var func;

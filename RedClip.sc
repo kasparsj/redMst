@@ -1,32 +1,36 @@
-RedEvent {
-	var	<key, <>item, <>sections, <>options;
+RedClip {
+	var	<key, <>track, <>item, <>sections, <>options;
 
-	*new {|key, item, sections, options|
-		var trk= RedMst.at(key);
-		if(trk.isNil, {
-			^super.new.init(key, item, sections, options);
+	*new {|key, track, item, sections, options|
+		var clip= RedMst.at(key);
+		if(clip.isNil, {
+			^super.new.init(key, track, item, sections, options);
 		}, {
 			if(item.isNil, {
-				^trk
+				^clip
 			}, {
 				if (item.kindOf(RedTrk)) {
-					("RedMst: replacing track"+key).inform;
-					trk.stop;							//stop previous item
+					("RedMst: replacing track"++key).inform;
+					clip.stop;
 				} {
-					("RedMst: replacing event"+key).inform;
-					trk.stop;							//stop previous item
+					("RedMst: replacing clip"++key).inform;
+					clip.stop;
 				};
-				trk.item= item;					//swap items
-				trk.sections= sections.asSequenceableCollection;
+				clip.item= item; // swap items
+				clip.sections= sections.asSequenceableCollection;
 			});
 		});
 	}
-	init {|argKey, argItem, argSections, argOptions|
+	init {|argKey, argTrack, argItem, argSections, argOptions|
 		key = argKey;
+		track = argTrack;
 		item = argItem;
 		sections = argSections.asSequenceableCollection;
 		options = argOptions;
 		RedMst.add(this);
+		if (RedMst.at(track).isNil) {
+			RedTrk(track);
+		};
 	}
 	addSections { |secs|
 		if (secs.isArray.not) {

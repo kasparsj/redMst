@@ -34,10 +34,8 @@ RedMstSessionGUI : RedMstGUI2 {
 			var viewWidth = view.bounds.width;
 			var btnW = 50;
 			var tracks = RedMst.tracks.values.sort({|a, b| a.key < b.key});
-			var events = RedMst.events.values.sort({|a, b| a.key < b.key});
-			var maxEvents = if (events.size > 0, { RedMst.maxEvents.min(2) }, { 0 });
 			var x = btnW + if (seq.notNil, { 40 }, { 20 });
-			var trackW = ((viewWidth - x) / (tracks.size + maxEvents)).max(50);
+			var trackW = ((viewWidth - x) / tracks.size).max(50);
 			if(tracks.notEmpty, {
 				h= size;
 				Pen.font_(fnt2);
@@ -45,11 +43,9 @@ RedMstSessionGUI : RedMstGUI2 {
 				tracks.do {|trk, i|
 					this.prDrawTrack(trk.key, Rect(x + (i*trackW), 0, trackW, h*0.9));
 				};
-				// events track
-				this.prDrawTrack("Events", Rect(x + (tracks.size*trackW), 0, trackW*maxEvents, h*0.9));
 				// sections
 				numSections.do{|section|
-					var evts, evW;
+					var clips = RedMst.sectionClips(section);
 					x = 0;
 					// duration
 					if (seq.notNil) {
@@ -71,20 +67,14 @@ RedMstSessionGUI : RedMstGUI2 {
 					x = x + 20;
 					// tracks
 					tracks.do{ |trk, i|
-						if (trk.sections.includes(section)) {
-							var color = trk.color ?? { Color.hsv(i * 1.0/tracks.size, 1, 1) };
-							this.prDrawTrack(trk.key, Rect(x, (section+1)*h, trackW, h*0.9), color);
+						var color = trk.color ?? { Color.hsv(i * 1.0/tracks.size, 1, 1) };
+						var clips2 = clips.select({|clip| clip.track == trk.key });
+						clips2 = if (clips2.size > 0, { clips2 }, { if (trk.sections.includes(section), { [trk] }, []) });
+						clips2.do { |clip, j|
+							var clipW = trackW / clips2.size;
+							this.prDrawTrack(clip.key, Rect(x + (j*clipW), (section+1)*h, clipW, h*0.9), color);
 						};
 						x = x + trackW;
-					};
-					// events
-					evts = events.select({|ev|
-						(ev.sections.includes(section));
-					});
-					evW = ((trackW*maxEvents) / evts.size).min(trackW);
-					evts.do{ |ev, i|
-						this.prDrawTrack(ev.key, Rect(x, (section+1)*h, evW, h*0.9));
-						x = x + evW;
 					};
 					// highlight
 					Pen.fillColor_(colBack2);

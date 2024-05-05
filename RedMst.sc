@@ -68,7 +68,7 @@ RedMst {
 		^items[key];
 	}
 	*add {|item|
-		if (item.isKindOf(RedEvent).not) {
+		if (item.isKindOf(RedClip).not) {
 			("RedMst.add: invalid item type: " ++ item.class.asString).throw;
 		};
 		items.put(item.key, item);
@@ -125,8 +125,7 @@ RedMst {
 			clock.schedAbs(clock.nextTimeOnGrid(quant), {
 				section= gotoSection;
 				jumpSection= nil;
-				this.prPlay(this.events, section);
-				this.prPlay(this.tracks, section);
+				this.prPlay(section);
 				alreadyJumping= false;
 				action.value;
 				nil;
@@ -134,18 +133,32 @@ RedMst {
 			alreadyJumping= true;
 		});
 	}
-	*events {
-		^items.select({|x| x.isKindOf(RedTrk).not });
-	}
-	*maxEvents {
-		^(maxSection+1).collect({ |section|
-			this.events.select({|x|
-				(x.sections.includes(section));
-			}).size;
-		}).maxItem;
-	}
 	*tracks {
 		^items.select({|x| x.isKindOf(RedTrk) });
+	}
+	*sectionTracks { |argSection|
+		argSection = argSection ? section;
+		^items.select{ |x|
+			if (x.isKindOf(RedTrk)) {
+				(x.sections.includes(inf) or: { x.sections.includes(argSection) });
+			} {
+				var y = RedMst.at(x.track);
+				if (y.notNil) {
+					(y.sections.includes(inf).not and: { y.sections.includes(argSection).not });
+				} {false};
+			};
+		};
+	}
+	*clips {
+		^items.select({|x| x.isKindOf(RedTrk).not });
+	}
+	*sectionClips { |argSection|
+		argSection = argSection ? section;
+		^items.select{ |x|
+			if (x.isKindOf(RedTrk).not) {
+				(x.sections.includes(inf) or: { x.sections.includes(argSection) });
+			} {false};
+		};
 	}
 	*prStop { |section|
 		var itms = items.select{|x|
@@ -157,20 +170,21 @@ RedMst {
 		};
 		itms.do(_.stop);
 	}
-	*prPlay { |itms, section|
-		itms = itms.select{ |x|
-			if(x.sections.includes(inf).not, {
-				(x.sections.includes(section) and:{x.isPlaying.not});
-			}, {
-				x.isPlaying.not;
-			});
-		};
+	*prPlay {
+		var clips = this.sectionClips;
+		var tracks = this.sectionTracks;
+		var items = clips ++ tracks;
 		if(section>maxSection, {
 			("RedMst: section out of range, max: "+maxSection).postln;
 		}, {
-			("RedMst: play section:"+itms.values.collect(_.key).asString+" ("+section+"of"+maxSection+")").postln;
+			("RedMst: play section:"+items.values.collect(_.key).asString+" ("+section+"of"+maxSection+")").postln;
 		});
-		itms.do(_.play);
+		clips.do(_.play);
+		tracks.do {|x|
+			if (x.isPlaying.not) {
+				x.play;
+			};
+		};
 	}
 	*next {
 		var jump= section+1;
