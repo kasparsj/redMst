@@ -137,16 +137,15 @@ RedMst {
 		^items.select({|x| x.isKindOf(RedTrk) });
 	}
 	*sectionTracks { |argSection|
+		var trackHasClips = ();
+		this.sectionClips(argSection).do({|x|
+			trackHasClips[x.track] = true;
+		});
 		argSection = argSection ? section;
-		^items.select{ |x|
-			if (x.isKindOf(RedTrk)) {
-				(x.sections.includes(inf) or: { x.sections.includes(argSection) });
-			} {
-				var y = RedMst.at(x.track);
-				if (y.notNil) {
-					(y.sections.includes(inf).not and: { y.sections.includes(argSection).not });
-				} {false};
-			};
+		^this.tracks.select{ |x|
+			if (x.sections.includes(inf) or: { x.sections.includes(argSection) }) {true} {
+				trackHasClips[x.key].notNil;
+			}
 		};
 	}
 	*clips {
@@ -161,18 +160,15 @@ RedMst {
 		};
 	}
 	*prStop { |section|
-		var itms = items.select{|x|
-			if(x.sections.includes(inf).not, {
-				(x.sections.includes(section).not and:{x.isPlaying});
-			}, {
-				false;
-			});
+		var clipTracks = this.sectionClips(section).collect({|x| x.track});
+		var toStop = items.select{|x|
+			(clipTracks.includes(x.key).not and: { x.sections.includes(inf).not and: { x.sections.includes(section).not and:{ x.isPlaying } } });
 		};
-		itms.do(_.stop);
+		toStop.do(_.stop);
 	}
-	*prPlay {
-		var clips = this.sectionClips;
-		var tracks = this.sectionTracks;
+	*prPlay { |section|
+		var clips = this.sectionClips(section);
+		var tracks = this.sectionTracks(section);
 		var items = clips ++ tracks;
 		if(section>maxSection, {
 			("RedMst: section out of range, max: "+maxSection).postln;
