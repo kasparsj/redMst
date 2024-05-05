@@ -34,9 +34,8 @@ RedScore {
 		};
 	}
 
-	createSeq { |from, to|
-		var beats1;
-		from = from ? 0;
+	createSeq { |from=0, to, loop=true|
+		var seq, beats1;
 		to = to ? (this.size - 1);
 		if (mode == \beats) {
 			beats1 = beats[from..to];
@@ -46,7 +45,15 @@ RedScore {
 				beats1 = beats1 - beats[1..][from-1];
 			};
 		};
-		^RedSeq((from..to), beats1, mode);
+		seq = RedSeq((from..to), beats1, mode);
+		seq.onLoop = {
+			if (loop, {
+				seq.goto(0);
+			}, {
+				seq.stop;
+			});
+		};
+		^seq;
 	}
 
 	size {
