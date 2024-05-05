@@ -84,7 +84,7 @@ RedMst {
 		});
 	}
 	*tracks {
-		^items.select({|x| x.isKindOf(RedTrk) });
+		^items.select({|x| x.isKindOf(RedTrack) });
 	}
 	*sectionTracks { |argSection|
 		var trackHasClips = ();
@@ -99,12 +99,12 @@ RedMst {
 		};
 	}
 	*clips {
-		^items.select({|x| x.isKindOf(RedTrk).not });
+		^items.select({|x| x.isKindOf(RedTrack).not });
 	}
 	*sectionClips { |argSection|
 		argSection = argSection ? section;
 		^items.select{ |x|
-			if (x.isKindOf(RedTrk).not) {
+			if (x.isKindOf(RedTrack).not) {
 				(x.sections.includes(inf) or: { x.sections.includes(argSection) });
 			} {false};
 		};

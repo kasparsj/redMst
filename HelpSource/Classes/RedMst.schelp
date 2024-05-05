@@ -1,14 +1,14 @@
 CLASS:: RedMst
 SUMMARY:: a sort of timeline - master controller
 CATEGORIES:: Red>redMst
-RELATED:: Classes/RedTrk, Classes/RedTrk2, Classes/RedSeq, Classes/RedGrandMst, Classes/RedMstGUI, Classes/RedMstGUI2, Classes/RedMstGUI3
+RELATED:: Classes/RedTrack, Classes/RedTrack2, Classes/RedSeq, Classes/RedGrandMst, Classes/RedMstGUI, Classes/RedMstGUI2, Classes/RedMstGUI3
 
 DESCRIPTION::
-RedMst controls track objects (i.e. link::Classes/RedTrk::). It does so by sending play and stop messages to them synced to a clock. RedMst also has a global counter for sections. If a track is not already playing and is activated to play for a certain section, it gets sent a play message when RedMst reaches that section, else the track is stopped.
+RedMst controls track objects (i.e. link::Classes/RedTrack::). It does so by sending play and stop messages to them synced to a clock. RedMst also has a global counter for sections. If a track is not already playing and is activated to play for a certain section, it gets sent a play message when RedMst reaches that section, else the track is stopped.
 The section counter is driven manually by user input ( link::#*next::, link::#*goto::, etc.) or by link::Classes/RedSeq::. All messages controlling playback ( link::#*next::, link::#*prev::, link::#*goto::, link::#*play::, link::#*stop:: ) are scheduled to happen on the next quant beat.
 
 NOTE::
-When you replace/overwrite a link::Classes/RedTrk:: as it is running, it will stop playing and not start until you goto a new RedMst section.
+When you replace/overwrite a link::Classes/RedTrack:: as it is running, it will stop playing and not start until you goto a new RedMst section.
 ::
 
 CLASSMETHODS::
@@ -37,7 +37,7 @@ METHOD:: clear
 Stop and remove all tracks, reset section counter and stop the clock. Clears action function.
 
 METHOD:: tracks
-Dictionary of all tracks. Tracks (i.e. link::Classes/RedTrk:: objects) add themselves here when created.
+Dictionary of all tracks. Tracks (i.e. link::Classes/RedTrack:: objects) add themselves here when created.
 
 METHOD:: clock
 Master clock. If not set code::TempoClock.default:: is used.
@@ -70,7 +70,7 @@ METHOD:: at
 Returns track for key.
 
 METHOD:: add
-Done automatically for all new instances of link::Classes/RedTrk::.
+Done automatically for all new instances of link::Classes/RedTrack::.
 
 METHOD:: remove
 Usually done with link::#*clear::. Removes a track from master controller.
@@ -91,17 +91,17 @@ RedMst.clear;						//remove all tracks and clock from previous
 RedMst.clock= TempoClock(150/60);			//create and set a new clock
 RedMst.quant= 4;					//set quant beat
 
-RedTrk(
+RedTrack(
 	\bass,						//track name
 	Pbind(\degree, Pseq([0, 5], inf), \octave, 4),	//track item
 	#[0, 1, 2, 3]					//track active sections (when to play)
 );
-RedTrk(
+RedTrack(
 	\melody,
 	Pbind(\degree, Pseq([0, 5, 2, 3, 3, 1], inf), \dur, Pseq([0.25, 0.25, 0.5], inf)),
 	#[1, 2, 5]
 );
-RedTrk(
+RedTrack(
 	\melody2,
 	Pbind(\degree, Pseq([7, 6, 4, 3], inf), \dur, 2, \octave, 6),
 	#[2, 3]
@@ -149,12 +149,12 @@ SynthDef(\pad, {|out= 0, freq= 700, gate= 1, amp= 0.5, pan= 0|
 }).add;
 
 //--patterns
-RedTrk(\hatSimple, Pbind(				//track name
+RedTrack(\hatSimple, Pbind(				//track name
 	\instrument, \hat,
 	\dur, Pseq([0.6, 0.4], inf),
 	\amp, Pseq([0.2, 0.5], inf)
 ), #[0, 1, 3, 4]);					//which sections track active
-RedTrk(\basIntro, Pbind(
+RedTrack(\basIntro, Pbind(
 	\instrument, \bas,
 	\dur, Pseq([0.6, 1, 1, 1, 0.4], inf),
 	\amp, 0.5,
@@ -162,21 +162,21 @@ RedTrk(\basIntro, Pbind(
 	\degree, Pseq([0, 5, 4, 5, 1], inf),
 	\octave, 3
 ), #[0, 3]);
-RedTrk(\padA, Pbind(
+RedTrack(\padA, Pbind(
 	\instrument, \pad,
 	\dur, Pseq([2, 3, 1, 1], inf),
 	\amp, 0.5,
 	\degree, Pseq([[0, 5], [0, 4], [3, 5], [3, 5]], inf),
 	\octave, 4
 ), #[1, 4]);
-RedTrk(\basA, Pbind(
+RedTrack(\basA, Pbind(
 	\instrument, \bas,
 	\dur, 1,
 	\amp, 0.5,
 	\degree, Pseq([Pseq([-3, -2, 2, 1], 3), -3, 1], inf),
 	\octave, 3
 ), #[1, 4]);
-RedTrk(\basBreak, Pbind(
+RedTrack(\basBreak, Pbind(
 	\instrument, \bas,
 	\dur, 4,
 	\amp, 0.4,
@@ -184,12 +184,12 @@ RedTrk(\basBreak, Pbind(
 	\octave, [3, 4],
 	\strum, 0.1
 ), #[2]);
-RedTrk(\hatBreak, Pbind(
+RedTrack(\hatBreak, Pbind(
 	\instrument, \hat,
 	\dur, Pseq([0.2, 0.2, 0.2, 0.4], inf),
 	\amp, Pseq([0.5, 0.3, 0.3, 0.5], inf)
 ), #[2]);
-RedTrk(\padTrem, Pbind(
+RedTrack(\padTrem, Pbind(
 	\instrument, \pad,
 	\dur, Pseq([0.2, 0.2, 0.2, 0.4], inf),
 	\amp, Pseq([0.5, 0.3, 0.3, 0.5], inf),
@@ -255,21 +255,21 @@ m= RedMOD.read("~/mods/lukas/eva.mod").prepareForPlay;
 n= RedXM.read("~/mods/4-mat_-_rose.xm").prepareForPlay;
 
 //--tracks
-RedTrk(\steady, Pbind(\legato, 0.1, \freq, 800), #[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
-RedTrk(\test01, a, #[1]);
-RedTrk(\test02, b, #[2]);
-RedTrk(\test03, c, #[3]);
-RedTrk(\test04, d, #[4]);
-RedTrk(\test05, e, #[5]);
-RedTrk(\test06, f, #[6]);
-RedTrk(\test07, g, #[7]);
-RedTrk(\test08, h, #[8]);
-RedTrk(\test09, i, #[9]);
-RedTrk(\test10, j, #[10]);
-RedTrk(\test11, k, #[11]);
-RedTrk(\test12, l, #[12]);
-RedTrk(\test13, m, #[13]);
-RedTrk(\test14, n, #[14]);
+RedTrack(\steady, Pbind(\legato, 0.1, \freq, 800), #[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+RedTrack(\test01, a, #[1]);
+RedTrack(\test02, b, #[2]);
+RedTrack(\test03, c, #[3]);
+RedTrack(\test04, d, #[4]);
+RedTrack(\test05, e, #[5]);
+RedTrack(\test06, f, #[6]);
+RedTrack(\test07, g, #[7]);
+RedTrack(\test08, h, #[8]);
+RedTrack(\test09, i, #[9]);
+RedTrack(\test10, j, #[10]);
+RedTrack(\test11, k, #[11]);
+RedTrack(\test12, l, #[12]);
+RedTrack(\test13, m, #[13]);
+RedTrack(\test14, n, #[14]);
 }
 )
 

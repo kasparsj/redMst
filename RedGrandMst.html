@@ -32,7 +32,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p3"><br></p>
 <p class="p1">experimental class! <span class="Apple-converted-space"> </span></p>
 <p class="p2"><br></p>
-<p class="p4"><span class="s2">see also [<a href="RedMst.html"><span class="s3">RedMst</span></a>] [<a href="RedSeq.html"><span class="s3">RedSeq</span></a>] [<a href="RedTrk.html"><span class="s3">RedTrk</span></a>] [<a href="RedTrk2.html"><span class="s3">RedTrk2</span></a>]</span></p>
+<p class="p4"><span class="s2">see also [<a href="RedMst.html"><span class="s3">RedMst</span></a>] [<a href="RedSeq.html"><span class="s3">RedSeq</span></a>] [<a href="RedTrack.html"><span class="s3">RedTrack</span></a>] [<a href="RedTrack2.html"><span class="s3">RedTrack2</span></a>]</span></p>
 <p class="p5"><br></p>
 <p class="p6"><b><span class="Apple-tab-span">	</span>*song_(name)</b></p>
 <p class="p6"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>save current RedMst settings in songDict and switch to a new song</p>
@@ -51,8 +51,8 @@ span.Apple-tab-span {white-space:pre}
 <p class="p9"><span class="s4">RedMst</span>.clock= <span class="s4">TempoClock</span>(150/60);</p>
 <p class="p9"><span class="s4">RedMst</span>.quant= 2;</p>
 <p class="p9"><span class="s4">SynthDef</span>(<span class="s5">\fast</span>, {<span class="s4">|freq|</span> <span class="s4">Out</span>.ar(0, <span class="s4">SinOsc</span>.ar(freq, 0, <span class="s4">Line</span>.kr(0.2, 0, 0.1, doneAction: 2)))}).add;</p>
-<p class="p9"><span class="s4">RedTrk</span>(<span class="s5">\a</span>, <span class="s4">Pbind</span>(<span class="s5">\instrument</span>, <span class="s5">\fast</span>, <span class="s5">\dur</span>, 1, <span class="s5">\degree</span>, <span class="s4">Pseq</span>(#[0, 4, 2, 3], <span class="s4">inf</span>)), #[0, 1]);</p>
-<p class="p9"><span class="s4">RedTrk</span>(<span class="s5">\b</span>, <span class="s4">Pbind</span>(<span class="s5">\instrument</span>, <span class="s5">\fast</span>, <span class="s5">\dur</span>, 1/3, <span class="s5">\degree</span>, <span class="s4">Pn</span>(<span class="s4">Pshuf</span>(#[10, 6, 5, 8], 4), <span class="s4">inf</span>)), #[1]);</p>
+<p class="p9"><span class="s4">RedTrack</span>(<span class="s5">\a</span>, <span class="s4">Pbind</span>(<span class="s5">\instrument</span>, <span class="s5">\fast</span>, <span class="s5">\dur</span>, 1, <span class="s5">\degree</span>, <span class="s4">Pseq</span>(#[0, 4, 2, 3], <span class="s4">inf</span>)), #[0, 1]);</p>
+<p class="p9"><span class="s4">RedTrack</span>(<span class="s5">\b</span>, <span class="s4">Pbind</span>(<span class="s5">\instrument</span>, <span class="s5">\fast</span>, <span class="s5">\dur</span>, 1/3, <span class="s5">\degree</span>, <span class="s4">Pn</span>(<span class="s4">Pshuf</span>(#[10, 6, 5, 8], 4), <span class="s4">inf</span>)), #[1]);</p>
 <p class="p9">)</p>
 <p class="p11">RedMst<span class="s2">.play</span></p>
 <p class="p11">RedMst<span class="s2">.next</span></p>
@@ -64,8 +64,8 @@ span.Apple-tab-span {white-space:pre}
 <p class="p9"><span class="s4">RedMst</span>.clock= <span class="s4">TempoClock</span>(80/60);</p>
 <p class="p9"><span class="s4">RedMst</span>.quant= 1;</p>
 <p class="p9"><span class="s4">SynthDef</span>(<span class="s5">\slow</span>, {<span class="s4">|freq|</span> <span class="s4">Out</span>.ar(0, <span class="s4">LPF</span>.ar(<span class="s4">Blip</span>.ar(freq, 20, <span class="s4">Line</span>.kr(1, 0, 2, doneAction:2))))}).add;</p>
-<p class="p9"><span class="s4">RedTrk</span>(<span class="s5">\a</span>, <span class="s4">Pbind</span>(<span class="s5">\instrument</span>, <span class="s5">\slow</span>, <span class="s5">\dur</span>, 3, <span class="s5">\degree</span>, <span class="s4">Pseq</span>(#[0, 0, 1, 2], <span class="s4">inf</span>)), #[0, 1]);</p>
-<p class="p9"><span class="s4">RedTrk</span>(<span class="s5">\b</span>, <span class="s4">Pbind</span>(<span class="s5">\instrument</span>, <span class="s5">\slow</span>, <span class="s5">\dur</span>, 2, <span class="s5">\degree</span>, <span class="s4">Pn</span>(<span class="s4">Pshuf</span>(#[5, 4, 3, 3], 2), <span class="s4">inf</span>)), #[1]);</p>
+<p class="p9"><span class="s4">RedTrack</span>(<span class="s5">\a</span>, <span class="s4">Pbind</span>(<span class="s5">\instrument</span>, <span class="s5">\slow</span>, <span class="s5">\dur</span>, 3, <span class="s5">\degree</span>, <span class="s4">Pseq</span>(#[0, 0, 1, 2], <span class="s4">inf</span>)), #[0, 1]);</p>
+<p class="p9"><span class="s4">RedTrack</span>(<span class="s5">\b</span>, <span class="s4">Pbind</span>(<span class="s5">\instrument</span>, <span class="s5">\slow</span>, <span class="s5">\dur</span>, 2, <span class="s5">\degree</span>, <span class="s4">Pn</span>(<span class="s4">Pshuf</span>(#[5, 4, 3, 3], 2), <span class="s4">inf</span>)), #[1]);</p>
 <p class="p9">)</p>
 <p class="p11">RedMst<span class="s2">.play</span></p>
 <p class="p11">RedMst<span class="s2">.next</span></p>

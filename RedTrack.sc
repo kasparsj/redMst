@@ -1,6 +1,6 @@
 //redFrik - released under gnu gpl license
 
-RedTrk : RedClip {
+RedTrack : RedClip {
 	classvar <>playDict, <>stopDict, <>clearDict;
 	var	<player, <isPlaying= false, <isMuted = false,
 		<>onPlay, <>onStop;
@@ -31,6 +31,23 @@ RedTrk : RedClip {
 	}
 	*new {|key, item, sections, options|
 		^super.new(key, key, item, sections, options);
+	}
+	init { |argKey, argTrack, argItem, argSections, argOptions|
+		var channels, rate;
+		if(argItem.isKindOf(Pbind) or: { argItem.isKindOf(Pmono) }, {
+			argItem.patternpairs.pairsDo{|key, pat|
+				var desc;
+				if(key==\instrument, {
+					desc= SynthDescLib.global.synthDescs[pat];
+					if(desc.notNil, {
+						channels= desc.outputs[0].numberOfChannels;//is this correct?
+						rate= desc.outputs[0].rate;	//is this correct?
+					});
+				});
+			};
+			argItem= Pbus(argItem, 0, options.fadeTime ? 0.02, channels ? 2, rate ? \audio);
+		});
+		super.init(argKey, argTrack, argItem, argSections, argOptions);
 	}
 	play {
 		var func;
@@ -105,7 +122,14 @@ RedTrk : RedClip {
 			player.free;
 		});
 	}
-	storeArgs {
-		^[key, item, sections]
+	fadeTime {
+		if (item.respondsTo(\fadeTime)) {
+			item.fadeTime;
+		};
+	}
+	fadeTime_ {|time|
+		if (item.respondsTo(\fadeTime_)) {
+			item.fadeTime_(time);
+		};
 	}
 }

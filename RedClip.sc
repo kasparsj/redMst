@@ -9,7 +9,7 @@ RedClip {
 			if(item.isNil, {
 				^clip
 			}, {
-				if (item.kindOf(RedTrk)) {
+				if (item.kindOf(RedTrack)) {
 					("RedMst: replacing track"++key).inform;
 					clip.stop;
 				} {
@@ -26,10 +26,10 @@ RedClip {
 		track = argTrack;
 		item = argItem;
 		sections = argSections.asSequenceableCollection;
-		options = argOptions;
+		options = argOptions ? ();
 		RedMst.add(this);
 		if (RedMst.at(track).isNil) {
-			RedTrk(track);
+			RedTrack(track);
 		};
 	}
 	addSections { |secs|
@@ -59,17 +59,12 @@ RedClip {
 		stream<<this.class.name<<$ <<key<<$ <<item.class.name<<$ <<sections
 	}
 	option { |name|
-		^if (options.isKindOf(Dictionary)) {
-			options[name];
-		} {
-			if (options.isArray) {
-				options.asDict[name];
-			} {
-				nil;
-			}
-		};
+		^options[name];
 	}
 	color {
 		^this.option(\color);
+	}
+	storeArgs {
+		^[key, track, item, sections]
 	}
 }
