@@ -9,7 +9,7 @@ RedClip {
 			if(item.isNil, {
 				^clip
 			}, {
-				if (item.kindOf(RedTrack)) {
+				if (item.isKindOf(RedTrack)) {
 					("RedMst: replacing track"++key).inform;
 					clip.stop;
 				} {
