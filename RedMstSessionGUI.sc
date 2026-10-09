@@ -1,4 +1,20 @@
 RedMstSessionGUI : RedMstGUI2 {
+	var guiBar;
+	// Count from the quantized section start, rather than the GUI's polling time.
+	barString {
+		var clock = RedMst.clock, start = RedMst.sectionStartBeat;
+		var bar, total, index;
+		if(RedMst.isPlaying.not or: { start.isNil }, { ^"—" });
+		bar = ((clock.beats - start).max(0) / clock.beatsPerBar).floor.asInteger + 1;
+		if(seq.notNil and: { seq.mode == \beats }, {
+			index = seq.currentIndex;
+			// During a queued jump, the sequence already points at its destination.
+			if(index.notNil and: { seq.sectionAt(index) == RedMst.section }, {
+				total = (seq.beatsAt(index) / clock.beatsPerBar).ceil.asInteger;
+			});
+		});
+		^if(total.notNil, { bar.asString ++ " / " ++ total }, { bar.asString });
+	}
 	prBounds { |size|
 		^Rect(300, Window.screenBounds.height-50, size*30, size*12);
 	}
@@ -14,6 +30,25 @@ RedMstSessionGUI : RedMstGUI2 {
 			if(x.respondsTo(\font), {x.font_(fnt)});
 			if(x.respondsTo(\stringColor_), {x.stringColor_(colFore)});
 		};
+		this.prInitDisplayMove;
+	}
+	prInitDisplayMove {
+		var revision = 0;
+		// SC #5166: moving between display scales leaves UserView buffers stale.
+		// Wait for movement to settle, then force a real resize of both canvases.
+		win.view.onMove_({
+			var pending = revision = revision + 1;
+			{
+				if(win.isClosed.not and: { pending == revision }, {
+					[guiUser, guiMetro].do { |view|
+						var bounds = view.bounds;
+						view.bounds_(bounds.copy.setExtent(bounds.width + 1, bounds.height));
+						view.bounds_(bounds);
+						view.refresh;
+					};
+				});
+			}.defer(0.2);
+		});
 	}
 	prDrawInfo { |size|
 		// StaticText(win, (size*4)@(size*1.5)).string_("sect:");
@@ -23,6 +58,10 @@ RedMstSessionGUI : RedMstGUI2 {
 		guiTempo= StaticText(win, (size*4)@(size*1.5));
 		StaticText(win, (size*4)@(size*1.5)).string_("quant:");
 		guiQuant= StaticText(win, (size*1.5)@(size*1.5));
+		win.view.decorator.nextLine;
+		StaticText(win, (size*3)@(size*1.5)).string_("bar:");
+		guiBar = StaticText(win, (size*8)@(size*1.5)).string_(this.barString);
+		win.view.decorator.nextLine;
 	}
 	prInitUser {|size|
 		var fnt2= fnt.copy.size_(9);
@@ -35,9 +74,9 @@ RedMstSessionGUI : RedMstGUI2 {
 			var btnW = 50;
 			var tracks = RedMst.tracks.values.sort({|a, b| a.key < b.key});
 			var x = btnW + if (seq.notNil, { 40 }, { 20 });
-			var trackW = ((viewWidth - x) / tracks.size).max(50);
+			var trackW = (viewWidth - x).max(0) / tracks.size.max(1);
 			if(tracks.notEmpty, {
-				h= size;
+				h= size.min((view.bounds.height - 150) / (numSections+1)).max(1);
 				Pen.font_(fnt2);
 				// tracks
 				tracks.do {|trk, i|
@@ -50,7 +89,7 @@ RedMstSessionGUI : RedMstGUI2 {
 					// duration
 					if (seq.notNil) {
 						Pen.fillColor_(colFore2);
-						Pen.stringAtPoint(seq.beatsAt(section).asString, Point(x, (section+1)*h+5));
+						Pen.stringLeftJustIn(seq.beatsAt(section).asString, Rect(x, (section+1)*h, 20, h*0.9));
 						x = x + 20
 					};
 					// play/stop section
@@ -59,15 +98,16 @@ RedMstSessionGUI : RedMstGUI2 {
 						btn = this.prPlaySectionBtn(view, Rect(x, (section+1)*h, btnW, h*0.9), section)
 						.font_(fnt2);
 					};
+					btn.bounds_(Rect(x, (section+1)*h, btnW, h*0.9));
 					btn.value_(if (section == RedMst.section or: { section == RedMst.jumpSection } and: { RedMst.isPlaying }, 1, 0));
 					x = x + btnW;
 					// index
 					Pen.fillColor_(colFore2);
-					Pen.stringAtPoint(section.asString, Point(x+5, (section+1)*h+5));
+					Pen.stringLeftJustIn(section.asString, Rect(x+5, (section+1)*h, 15, h*0.9));
 					x = x + 20;
 					// tracks
 					tracks.do{ |trk, i|
-						var color = trk.color ?? { Color.hsv(i * 1.0/tracks.size, 1, 1) };
+						var color = this.prTrackColor(trk, i, tracks.size);
 						var clips2 = clips.select({|clip| clip.track == trk.key });
 						clips2 = if (clips2.size > 0, { clips2 }, { if (trk.sections.includes(section), { [trk] }, []) });
 						clips2.do { |clip, j|
@@ -93,13 +133,14 @@ RedMstSessionGUI : RedMstGUI2 {
 					if (track.item.respondsTo(\vol_)) {
 						slider = view.children.detect({|c| c.name==("vol" ++ track.key.asString)});
 						if (slider.isNil) {
-							slider = Slider(view, Rect(x + (i*trackW), (numSections+1)*h, (trackW-50).max(50), 150))
+							slider = Slider(view, Rect(x + (i*trackW), (numSections+1)*h, (trackW-50).max(1).min(trackW), 150))
 							.name_("vol" ++ track.key.asString)
 							.value_(track.item.vol)
 							.canFocus_(false)
 							.action_({|view| track.item.vol = view.value });
+							this.prStyleView(slider);
 						};
-						slider.moveTo(x + (i*trackW), (numSections+1)*h);
+						slider.bounds_(Rect(x + (i*trackW), (numSections+1)*h, (trackW-50).max(1).min(trackW), 150));
 					};
 					/*StaticText(view, Rect(x + (i*trackW), (numSections+1)*h, trackW, h*0.9))
 					.font_(fnt2)
@@ -112,63 +153,64 @@ RedMstSessionGUI : RedMstGUI2 {
 		};
 	}
 	prDrawTrack { |name, rect, color, margin=1|
-		Pen.color_(color ? colFore);
+		color = color ? colSurface;
+		Pen.color_(color);
 		Pen.fillRect(Rect(rect.left+margin, rect.top+margin, rect.width-(2*margin),  rect.height-(2*margin)));
-		Pen.fillColor_(colFore2);
-		Pen.stringAtPoint(name, Point(rect.left+5, rect.top+5));
+		Pen.fillColor_(this.prTextOn(color));
+		Pen.stringLeftJustIn(name, Rect(rect.left+5, rect.top, (rect.width-10).max(0), rect.height));
 	}
 	prPlaySectionBtn { |view, rect, section|
-		^Button(view, rect)
+		var button = Button(view, rect)
 		.name_("play" ++ section)
 		.canFocus_(false)
 		.states_([["play", colFore, colBack], ["stop", colBack, colFore]])
 		.action_{|view| if(view.value==1, { this.prPlay(section) }, { this.prStop })};
+		this.prStyleView(button);
+		^button;
 	}
 	prInitTask {|size|
 		task= Routine{
 			var lastJump, lastSection = RedMst.section, lastNumSections= -1;
 			inf.do{
 				{
-					guiPlay.value_(RedMst.isPlaying.binaryValue);
-					guiSection.string_(RedMst.section);
-					guiMaxSection.string_("/"++RedMst.maxSection);
-					try{
-						guiTempo.string_(RedMst.clock.tempo*60);
-					} {
-						guiTempo.string_("-");
-					};
-					guiQuant.string_(RedMst.quant);
-					if (lastSection != RedMst.section) {
-						lastSection = RedMst.section;
-						guiUser.children.detect({|c| c.name == "tracks"}).remove;
-					};
-					if(lastNumSections!=(RedMst.maxSection+1), {
-						lastNumSections= (RedMst.maxSection+1);
-						win.bounds= win.bounds.setExtent(
-							size*25*2+20.min(Window.screenBounds.width - 50),
-							((size*2)+25+(lastNumSections*size)+150).min(Window.screenBounds.height-50)
-						);
-						guiUser.bounds= guiUser.bounds.setExtent(
-							win.bounds.width-7,
-							(lastNumSections+1)*size+150
-						);
-					}, {
-						guiMetro.refresh;
-						guiUser.refresh;
-						if(lastJump!=RedMst.jumpSection, {
-							lastJump= RedMst.jumpSection;
-							if(RedMst.jumpSection.isNil, {
-								guiPrev.states_([["<", colFore, colBack]]);
-								guiNext.states_([[">", colFore, colBack]]);
-							}, {
-								if(RedMst.jumpSection<RedMst.section, {
-									guiPrev.states_([["<", colFore2, colBack2]]);
-								}, {
-									guiNext.states_([[">", colFore2, colBack2]]);
-								});
+					if(win.isClosed.not, {
+						guiPlay.value_(RedMst.isPlaying.binaryValue);
+						guiSection.string_(RedMst.section);
+						guiMaxSection.string_("/"++RedMst.maxSection);
+						try{
+							guiTempo.string_(RedMst.clock.tempo*60);
+						} {
+							guiTempo.string_("-");
+						};
+						guiQuant.string_(RedMst.quant);
+						guiBar.string_(this.barString);
+						if (lastSection != RedMst.section) {
+							lastSection = RedMst.section;
+							guiUser.children.detect({|c| c.name == "tracks"}).remove;
+						};
+						if(lastNumSections!=(RedMst.maxSection+1), {
+							var available = Window.flipY(Window.availableBounds);
+							var bounds;
+							lastNumSections= (RedMst.maxSection+1);
+							bounds= win.bounds.setExtent(
+								(size*25*2+20).min(Window.availableBounds.width - 50),
+								((size*5)+25+themeHeight+(lastNumSections*size)+150).min(Window.availableBounds.height-50)
+							);
+							win.bounds= bounds.moveTo(
+								bounds.left.clip(available.left+25, available.right-bounds.width-25),
+								bounds.top.clip(available.top+25, available.bottom-bounds.height-25)
+							);
+							guiUser.bounds= guiUser.bounds.setExtent(
+								win.bounds.width-7,
+								((lastNumSections+1)*size+150).min(win.bounds.height - guiUser.bounds.top - 4)
+							);
+						}, {
+							guiMetro.refresh;
+							guiUser.refresh;
+							if(lastJump!=RedMst.jumpSection, {
+								lastJump= RedMst.jumpSection;
+								this.prUpdateNavigation;
 							});
-							guiPrev.refresh;
-							guiNext.refresh;
 						});
 					});
 				}.defer;

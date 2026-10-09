@@ -1,0 +1,6 @@
+RedMstThemeMockPlayer {
+	var <>vol = 0.37;
+	play { ^this }
+	stop { ^this }
+	free { ^this }
+}

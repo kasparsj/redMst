@@ -1,7 +1,7 @@
 // redFrik - released under gnu gpl license
 RedMst {
 	classvar <items, <>clock, <>quant= 4,
-			<section= 0, <maxSection= 0, <jumpSection,
+			<section= 0, <maxSection= 0, <jumpSection, <sectionStartBeat,
 			<>stopAheadTime= 0.05,
 			<>skipEmpty= false,
 			<>action,
@@ -35,6 +35,7 @@ RedMst {
 		section= 0;
 		maxSection= 0;
 		jumpSection= nil;
+		sectionStartBeat= nil;
 		action= nil;
 		/*if(clock!=TempoClock.default, {
 			clock.stop;
@@ -44,6 +45,7 @@ RedMst {
 	}
 	*stop {
 		isPlaying= false;
+		sectionStartBeat= nil;
 		if((clock.notNil && clock.isRunning), {
 			clock.schedAbs(clock.nextTimeOnGrid(quant)-stopAheadTime, {
 				items.do(_.stop);
@@ -74,6 +76,7 @@ RedMst {
 			});
 			clock.schedAbs(clock.nextTimeOnGrid(quant), {
 				section= gotoSection;
+				sectionStartBeat= clock.beats;
 				jumpSection= nil;
 				this.prPlay(section);
 				alreadyJumping= false;

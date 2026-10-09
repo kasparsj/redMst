@@ -22,7 +22,23 @@ ARGUMENT:: size
 Fontsize. The default is 24.
 
 ARGUMENT:: skin
-This is a GUI.skin. If not gives a special 'red' skin will be provided.
+An optional GUI.skin. Without a skin, the window uses the shared dark or light theme. Explicit custom skins remain unchanged by shared theme switches and omit the theme button.
+
+ARGUMENT:: seq
+The RedSeq controlled by this window.
+
+METHOD:: theme
+Get or set the shared theme using code::\dark:: or code::\light::. The default is code::\dark::. Setting it updates all open windows that use the shared theme; new windows inherit the current selection. The small button in the top-right corner of each themed window changes this same setting.
+
+The theme is shared by RedMstGUI, RedMstGUI2, RedMstGUI3, RedMstSessionGUI, and RedMstArrangementGUI. It lasts for the current language session and resets after class-library recompilation. Switching themes does not change playback or mixer values.
+
+CODE::
+RedMstGUI.theme = \light;
+RedMstGUI.theme; // -> light
+RedMstGUI.theme = \dark;
+::
+
+After updating these classes, recompile the SuperCollider class library, reload your score setup, and reopen the windows.
 
 INSTANCEMETHODS::
 
